@@ -1,0 +1,7 @@
+name = NyTech Cards
+description = The flash card system
+core = 7.x
+package = NyTech
+files[] = nytech_cards.module
+
+stylesheets[all][] = css/module.css

@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ *
+ * @ingroup entity_example
+ */
+function nytech_cards_schema() {
+  $schema = array();
+
+  // The name of the table can be any name we choose. However, namespacing the
+  // table with the module name is best practice.
+  $schema['card'] = array(
+    'description' => 'A single card.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the entity.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The bundle type for the entity.',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The id of user authored the entity.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'The unix time the entity object was created.',
+        'type' => 'int',
+      ),
+      'changed' => array(
+        'description' => 'The unix time the entity was last updated.',
+        'type' => 'int',
+      ),
+      'binder_id' => array(
+        'description' => 'The record ID this entity is pointing to.',
+        'type' => 'int',
+      ),
+      'binder_type' => array(
+        'description' => 'The record type this entity is pointing to.',
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'state' => array(
+        'description' => 'The state of the entity: active, inactive',
+        'type' => 'int',
+      ),
+      'status' => array(
+        'description' => 'The status of the entity: active, inactive',
+        'type' => 'int',
+      ),
+      'front' => array(
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'back' => array(
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'blob' => array(
+        'description' => 'The card data.',
+        'type' => 'text',
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['deck'] = array(
+      'description' => 'A deck is s stack of cards.',
+      'fields' => array(
+        'id' => array(
+          'description' => 'Primary key of the entity.',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'type' => array(
+          'description' => 'The bundle type for the entity.',
+          'type' => 'text',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'title' => array(
+          'description' => 'The title of the entity.',
+          'type' => 'text',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'uid' => array(
+          'description' => 'The id of user authored the entity.',
+          'type' => 'int',
+          'not null' => TRUE,
+        ),
+        'created' => array(
+          'description' => 'The unix time the entity object was created.',
+          'type' => 'int',
+        ),
+        'changed' => array(
+          'description' => 'The unix time the entity was last updated.',
+          'type' => 'int',
+        ),
+        'binder_id' => array(
+          'description' => 'The record ID this entity is pointing to.',
+          'type' => 'int',
+        ),
+        'binder_type' => array(
+          'description' => 'The record type this entity is pointing to.',
+          'type' => 'text',
+          'size' => 'medium',
+        ),
+        'state' => array(
+          'description' => 'The state of the entity: active, inactive',
+          'type' => 'int',
+        ),
+        'status' => array(
+          'description' => 'The state of the entity: active, inactive',
+          'type' => 'int',
+        ),
+        'blob' => array(
+          'description' => 'The deck data.',
+          'type' => 'text',
+          'size' => 'big',
+        ),
+      ),
+      'primary key' => array('id'),
+    );
+
+  return $schema;
+}

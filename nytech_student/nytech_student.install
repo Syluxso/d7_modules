@@ -1,0 +1,158 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ *
+ * @ingroup entity_example
+ */
+function nytech_student_schema() {
+  $schema = array();
+
+  // The name of the table can be any name we choose. However, namespacing the
+  // table with the module name is best practice.
+  $schema['student'] = array(
+    'description' => 'The student object',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the entity.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The bundle type for the entity.',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The id of user authored the entity.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the entity was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the entity was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'binder_id' => array(
+        'description' => 'The record ID this entity is pointing to.',
+        'type' => 'int',
+      ),
+      'binder_type' => array(
+        'description' => 'The record type this entity is pointing to.',
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'state' => array(
+        'description' => 'The state of the entity: active, inactive',
+        'type' => 'int',
+      ),
+      'first' => array(
+        'description' => 'The first name.',
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'last' => array(
+        'description' => 'The last name.',
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'dob' => array(
+        'description' => 'The unix time of the date of birth.',
+        'type' => 'int',
+      ),
+      'grade' => array(
+        'description' => 'The grade.',
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['instruction_record'] = array(
+    'description' => 'The Instruction Record object',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the entity.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The bundle type for the entity.',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The id of user authored the entity.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the entity was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the entity was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'binder_id' => array(
+        'description' => 'The record ID this entity is pointing to.',
+        'type' => 'int',
+      ),
+      'binder_type' => array(
+        'description' => 'The record type this entity is pointing to.',
+        'type' => 'text',
+        'size' => 'medium',
+      ),
+      'state' => array(
+        'description' => 'The state of the entity: active, inactive',
+        'type' => 'int',
+      ),
+      'blob' => array(
+        'description' => 'The records.',
+        'type' => 'text',
+        'size' => 'big',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  if (module_exists('uuid')) {
+    $field = uuid_schema_field_definition();
+
+    $schema['student']['fields']['uuid'] = $field;
+    $schema['student']['indexes']['uuid'] = array('uuid');
+
+    $schema['instruction_record']['fields']['uuid'] = $field;
+    $schema['instruction_record']['indexes']['uuid'] = array('uuid');
+  }
+  return $schema;
+}
+
+
+/**
+ * Implements hook_uninstall().
+ *
+ * At uninstall time we'll notify field.module that the entity was deleted
+ * so that attached fields can be cleaned up.
+ *
+ * @ingroup entity_example
+ */
+function nytech_student_uninstall() {
+  field_attach_delete_bundle('student', 'standard');
+}

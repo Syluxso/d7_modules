@@ -1,0 +1,218 @@
+<?php
+
+module_load_include('inc', 'nytech_student', 'nytech_student.classes');
+
+
+/**
+ * Implements hook_entity_info().
+ */
+function nytech_student_entity_info() {
+	$info = array(
+		'student' => array(
+			'label' => t('Student'),
+			'plural label' => t('Students'),
+			'entity class' => 'Entity',
+			'controller class' => 'EntityAPIController',
+			'views controller class' => 'StudentViewsController',
+			'base table' => 'student',
+			'entity keys' => array(
+				'id' => 'id',
+			),
+      'uuid' => TRUE,
+      'bundle keys' => array(
+        'bundle' => 'type',
+      ),
+			'label callback' => 'entity_class_label',
+			'uri callback' => 'entity_class_uri',
+			'bundles' => array(
+				'standard' => array(
+					'label' => t('Standard'),
+				),
+			),
+			'view modes' => array(
+				'full' => array(
+					'label' => t('Full'),
+					'custom settings' => FALSE,
+				),
+			),
+		),
+    'instruction_record' => array(
+      'label' => t('Instruction record'),
+      'plural label' => t('Instruction records'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'views controller class' => 'InstructionRecordViewsController',
+      'base table' => 'instruction_record',
+      'entity keys' => array(
+        'id' => 'id',
+      ),
+      'uuid' => TRUE,
+      'bundle keys' => array(
+        'bundle' => 'type',
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'bundles' => array(
+        'standard' => array(
+          'label' => t('Standard'),
+        ),
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+	);
+	return $info;
+}
+
+function nytech_student_menu() {
+
+	$items['api/v1/students'] = array(
+		'title' => 'Students',
+	    'page callback' => 'endpoint_students',
+	    'access callback' => true,
+	    'file' => 'nytech_student.inc',
+	    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+      'delivery callback' => 'drupal_json_output',
+	);
+
+  $items['a/students'] = array(
+    'title' => 'Students',
+    'page callback' => 'screen_students',
+    'access callback' => 'user_is_logged_in',
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+  $items['a/students/%'] = array(
+    'title' => 'Student',
+    'page callback' => 'screen_student_edit',
+    'page arguments' => [2],
+    'access callback' => 'users_record',
+    'access arguments' => [2],
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+  $items['a/students/%/archive'] = array(
+    'title' => 'Student',
+    'page callback' => 'screen_student_archive',
+    'page arguments' => [2],
+    'access callback' => 'users_record',
+    'access arguments' => [2],
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+  $items['a/students/%/days'] = array(
+    'title' => 'Student Instruction Days',
+    'page callback' => 'screen_student_logs',
+    'page arguments' => [2],
+    'access callback' => 'users_record',
+    'access arguments' => [2],
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+  $items['a/students/%/days/report'] = array(
+    'title' => 'Instruction Report',
+    'page callback' => 'screen_student_logs_report',
+    'page arguments' => [2],
+    'access callback' => 'users_record',
+    'access arguments' => [2],
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+  $items['a/students/%/days/%/%'] = array(
+    'title' => 'Student Instruction Days',
+    'page callback' => 'screen_student_logs_select',
+    'page arguments' => [2,4,5],
+    'access callback' => 'users_record',
+    'access arguments' => [2],
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+  $items['api/v1/students/%/days/%/%/%'] = array(
+    'page callback' => 'screen_student_logs_toggle',
+    'page arguments' => [3,5,6,7],
+    'access callback' => 'users_record',
+    'access arguments' => [3],
+    'file' => 'nytech_student.inc',
+    'file path' => drupal_get_path('module', 'nytech_student') . '/inc',
+  );
+
+	return $items;
+}
+
+function users_record($id) {
+  $access = false;
+  $students = new NyTechUsersStudents();
+  if(!empty($students->ids)) {
+    if(in_array($id, $students->ids)) {
+      $access = true;
+    }
+  }
+  return $access;
+}
+
+function nytech_student_theme($existing, $type, $theme, $path) {
+  $theme = array();
+  $theme['day_box'] = array(
+    'template' => 'day_box',
+    'path' => drupal_get_path('module', 'nytech_student') . '/templates',
+  );
+  return $theme;
+}
+
+
+/**
+ * EntityTest Views Controller class.
+ */
+class StudentViewsController extends EntityDefaultViewsController {
+
+  /**
+   * Edit or add extra fields to views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
+
+    // Add your custom data here
+
+    /*
+    * Example: change the handler of a field
+    * if the 'created' field is a unix timestamp in the database,
+    * Entity API will set the handler to views_handler_field_numeric,
+    * change this to the views date handler
+    */
+    // $data['contact']['participants']['field']['handler'] = 'views_handler_field_date';
+
+    return $data;
+  }
+}
+
+class InstructionRecordViewsController extends EntityDefaultViewsController {
+
+  /**
+   * Edit or add extra fields to views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
+
+    // Add your custom data here
+
+    /*
+    * Example: change the handler of a field
+    * if the 'created' field is a unix timestamp in the database,
+    * Entity API will set the handler to views_handler_field_numeric,
+    * change this to the views date handler
+    */
+    // $data['contact']['participants']['field']['handler'] = 'views_handler_field_date';
+
+    return $data;
+  }
+}

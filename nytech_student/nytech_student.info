@@ -1,0 +1,7 @@
+name = NyTech Student
+description = The Students object
+core = 7.x
+package = NyTech
+files[] = nytech_student.module
+
+stylesheets[all][] = css/module.css

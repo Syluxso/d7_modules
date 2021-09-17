@@ -1,0 +1,261 @@
+<?php
+
+module_load_include('inc', 'nytech_cards', 'nytech_cards.classes');
+
+
+/**
+ * Implements hook_entity_info().
+ */
+function nytech_cards_entity_info() {
+	$info = array(
+    'card' => array(
+      'label' => t('Card'),
+      'plural label' => t('Cards'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'views controller class' => 'CardViewsController',
+      'base table' => 'card',
+      'entity keys' => array(
+        'id' => 'id',
+      ),
+      'bundle keys' => array(
+        'bundle' => 'type',
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'bundles' => array(
+        'standard' => array(
+          'label' => t('Standard'),
+        ),
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+    'deck' => array(
+      'label' => t('Deck'),
+      'plural label' => t('Decks'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'views controller class' => 'DeckViewsController',
+      'base table' => 'deck',
+      'entity keys' => array(
+        'id' => 'id',
+      ),
+      'bundle keys' => array(
+        'bundle' => 'type',
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'bundles' => array(
+        'standard' => array(
+          'label' => t('Standard'),
+        ),
+      ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'custom settings' => FALSE,
+        ),
+      ),
+    )
+	);
+	return $info;
+}
+
+function nytech_cards_menu() {
+  $items['api/v1/cards'] = array(
+    'title' => 'All Cards',
+    'page callback' => 'endpoint_cards',
+    'access callback' => TRUE,
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+    'delivery callback' => 'drupal_json_output',
+  );
+
+  $items['decks/create'] = array(
+    'title' => 'New Deck',
+    'page callback' => 'endpoint_deck_new',
+    'access callback' => 'user_is_logged_in',
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks'] = array(
+    'title' => 'Decks',
+    'page callback' => 'endpoint_decks',
+    'access callback' => 'user_is_logged_in',
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%'] = array(
+    'title' => 'Deck',
+    'page callback' => 'endpoint_deck_single',
+    'page arguments' => [1],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/edit'] = array(
+    'title' => 'Deck',
+    'page callback' => 'endpoint_deck_edit',
+    'page arguments' => [1],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/delete'] = array(
+    'page callback' => 'endpoint_deck_delete',
+    'page arguments' => [1],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/run'] = array(
+    'title' => 'Deck',
+    'page callback' => 'endpoint_deck_run',
+    'page arguments' => [1],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/run/%'] = array(
+    'title' => 'Deck',
+    'page callback' => 'endpoint_deck_run',
+    'page arguments' => [1,3],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/cards/create'] = array(
+    'title' => 'New card',
+    'page callback' => 'endpoint_deck_new_card',
+    'page arguments' => [1],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/cards/list'] = array(
+    'title' => 'New card',
+    'page callback' => 'endpoint_deck_cards_list',
+    'page arguments' => [1],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/cards/%/edit'] = array(
+    'title' => 'New card',
+    'page callback' => 'endpoint_deck_cards_edit',
+    'page arguments' => [1,3],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/cards/%/delete'] = array(
+    'page callback' => 'endpoint_deck_cards_delete',
+    'page arguments' => [1,3],
+    'access callback' => 'is_deck_owner',
+    'access arguments' => [1],
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+  $items['decks/%/import'] = array(
+    'page callback' => 'endpoint_deck_import',
+    'page arguments' => [1],
+    'access callback' => 'user_is_logged_in',
+    'file' => 'nytech_cards.inc',
+    'file path' => drupal_get_path('module', 'nytech_cards') . '/inc',
+  );
+
+	return $items;
+}
+
+function is_deck_owner($id) {
+  $access = false;
+  global $user;
+  $decks = new NyTechUsersDecks($user->uid);
+  if(!empty($decks->ids)) {
+    if(in_array($id, $decks->ids)) {
+      $access = true;
+    }
+  }
+  return $access;
+}
+
+
+/**
+ * EntityTest Views Controller class.
+ */
+class DeckViewsController extends EntityDefaultViewsController {
+
+  /**
+   * Edit or add extra fields to views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
+
+    // Add your custom data here
+
+    /*
+    * Example: change the handler of a field
+    * if the 'created' field is a unix timestamp in the database,
+    * Entity API will set the handler to views_handler_field_numeric,
+    * change this to the views date handler
+    */
+    // $data['contact']['participants']['field']['handler'] = 'views_handler_field_date';
+
+    return $data;
+  }
+}
+
+function nytech_cards_theme($existing, $type, $theme, $path) {
+  $theme = array();
+  $theme['flip_card'] = array(
+    'template' => 'flip_card',
+    'path' => drupal_get_path('module', 'nytech_cards') . '/templates',
+  );
+  return $theme;
+}
+
+class CardViewsController extends EntityDefaultViewsController {
+
+  /**
+   * Edit or add extra fields to views_data().
+   */
+  public function views_data() {
+    $data = parent::views_data();
+
+    // Add your custom data here
+
+    /*
+    * Example: change the handler of a field
+    * if the 'created' field is a unix timestamp in the database,
+    * Entity API will set the handler to views_handler_field_numeric,
+    * change this to the views date handler
+    */
+    // $data['contact']['participants']['field']['handler'] = 'views_handler_field_date';
+
+    return $data;
+  }
+}

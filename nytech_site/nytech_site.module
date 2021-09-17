@@ -1,0 +1,318 @@
+<?php
+
+function nytech_site_menu() {
+    $items = array();
+  $items['admin/site-details'] = array(
+    'title' => 'Site Details',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('screen_site_details'),
+    'access callback' => 'user_is_logged_in',
+
+  );
+  $items['team'] = array(
+    'title' => 'Our Team',
+    'page callback' => 'screen_our_team',
+    'access callback' => true,
+
+  );
+  return $items;
+}
+
+function screen_our_team() {
+  $jesse = node_load(1);
+  $jesse = node_view($jesse, 'page');
+  $jesse = drupal_render($jesse) . '<hr />';
+  $view = views_embed_view('team', 'default');
+  $output = '<div class="row">' . $jesse . '</div><br />' . $view;
+  return $output;
+}
+
+function is_admin() {
+    $access = false;
+    global $user;
+    if(in_array('administrator', $user->roles)) {
+        $access = true;
+    }
+    return $access;
+}
+
+
+function screen_site_details() {
+  $form_state['rebuild'] = true;
+  $site_name    = variable_get('site_name', '');
+  $site_slogan  = variable_get('site_slogan', '');
+  $phone        = variable_get('site_phone', '');
+  $address      = variable_get('site_address', '');
+  $facebook_url = variable_get('facebook_url', '');
+  $insta_url    = variable_get('instagram_url', '');
+  $linkedin_url = variable_get('linkedin_url', '');
+  $site_email   = variable_get('site_email', '');
+  $site_about   = variable_get('site_about', '');
+  $site_h_title = variable_get('site_h_title', '');
+  $site_h_body  = variable_get('site_h_body', '');
+
+  $site_show_home_slider_array   = array(
+    'yes' => 'Yes',
+    'no' => 'No',
+  );
+  $site_show_home_slider_default   = variable_get('site_show_home_slider', 'yes');
+
+  $form['site_name'] = array(
+        '#title' => 'Site Name',
+        '#type' => 'textfield',
+        '#default_value' => $site_name,
+    );
+    $form['site_slogan'] = array(
+        '#title' => 'Long Name',
+        '#type' => 'textfield',
+        '#default_value' => $site_slogan,
+    );
+    $form['site_phone'] = array(
+        '#title' => 'Phone',
+        '#type' => 'textfield',
+        '#default_value' => $phone,
+    );
+    $form['site_address'] = array(
+        '#title' => 'Address',
+        '#type' => 'textfield',
+        '#default_value' => $address,
+    );
+    $form['facebook_url'] = array(
+        '#title' => 'Facebook URL',
+        '#type' => 'textfield',
+        '#default_value' => $facebook_url,
+    );
+    $form['instagram_url'] = array(
+      '#title' => 'Instagram URL',
+      '#type' => 'textfield',
+      '#default_value' => $insta_url,
+    );
+    $form['linkedin_url'] = array(
+      '#title' => 'LinkedIN URL',
+      '#type' => 'textfield',
+      '#default_value' => $linkedin_url,
+    );
+    $form['site_email'] = array(
+      '#title' => 'Email',
+      '#type' => 'textfield',
+      '#default_value' => $site_email,
+    );
+    $form['site_about'] = array(
+      '#title' => 'About MINI',
+      '#type' => 'textarea',
+      '#default_value' => $site_about,
+    );
+    $form['site_show_home_slider'] = array(
+      '#type' => 'select',
+      '#title' => 'Show Home Slider',
+      '#options' => $site_show_home_slider_array,
+      '#default_value' => $site_show_home_slider_default,
+      '#required' => true,
+    );
+    $form['site_h_title'] = array(
+      '#title' => 'Home blue title',
+      '#type' => 'textfield',
+      '#default_value' => $site_h_title,
+    );
+    $form['site_h_body'] = array(
+      '#title' => 'Home blue body',
+      '#type' => 'textarea',
+      '#default_value' => $site_h_body,
+    );
+    return system_settings_form($form);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nytech_site_theme($existing, $type, $theme, $path) {
+$themes = array();
+  $themes['home_featured_listing'] = array(
+    'template' => 'home_featured_listing',
+    'path' => drupal_get_path('module', 'nytech_site') . '/templates',
+  );
+  $themes['testimonial_slider'] = array(
+    'template' => 'testimonial_slider',
+    'path' => drupal_get_path('module', 'nytech_site') . '/templates',
+  );
+  return $themes;
+}
+
+function home_featured_listings() {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'listing')
+    ->propertyCondition('status', NODE_PUBLISHED)
+    ->fieldCondition('field_listing_status', 'tid', '5', '=')
+    ->addMetaData('account', user_load(1));
+
+  $result = $query->execute();
+
+  $output = '';
+
+  if (isset($result['node'])) {
+    $ids = array_keys($result['node']);
+    $nodes = entity_load('node', $ids);
+    foreach($nodes as $node) {
+      $term = taxonomy_term_load($node->field_listing_type['und'][0]['tid']);
+      $listing_image_url = file_create_url($node->field_listing_image['und'][0]['uri']);
+      $array = array(
+        'node' => $node,
+        'node_id' => $node->nid,
+        'listing_type' => $term->name,
+        'listing_image_url' => $listing_image_url,
+      );
+      $template = theme('home_featured_listing', $array);
+      $output .= $template;
+    }
+  }
+  return $output;
+}
+
+function nytech_site_preprocess_page(&$variables) {
+  $phone        = variable_get('site_phone', '');
+  $address      = variable_get('site_address', '');
+  $address_url  = variable_get('site_address_url', '');
+  $facebook_url = variable_get('facebook_url', '');
+  $insta_url    = variable_get('instagram_url', '');
+  $linkedin_url = variable_get('linkedin_url', '');
+  $site_email   = variable_get('site_email', '');
+  $site_about   = variable_get('site_about', '');
+  $theme        = '/' . drupal_get_path('theme', 'dgtheme') . '/';
+  $site_h_title = variable_get('site_h_title', '');
+  $site_h_body  = variable_get('site_h_body', '');
+
+  $show_home_slider = variable_get('site_show_home_slider', 'Yes');
+
+
+
+  $full_width = array(
+    'listings',
+    'listings/sold',
+    'team',
+  );
+  if (isset($variables['node']->type) && $variables['node']->type != 'page') {
+    $variables['theme_hook_suggestions'][] = 'page__sidebar';
+  } elseif(drupal_is_front_page()) {
+
+  } elseif(in_array(current_path(), $full_width)) {
+
+  } else {
+    $variables['theme_hook_suggestions'][] = 'page__sidebar';
+  }
+
+
+  $variables['site_phone']       = $phone;
+  $variables['site_address']     = $address;
+  $variables['site_address_url'] = $address_url;
+  $variables['facebook_url']     = $facebook_url;
+  $variables['instagram_url']    = $insta_url;
+  $variables['linkedin_url']     = $linkedin_url;
+  $variables['site_email']       = $site_email;
+  $variables['site_about']       = $site_about;
+  $variables['theme']            = $theme;
+  $variables['site_h_title']     = $site_h_title;
+  $variables['site_h_body']      = $site_h_body;
+
+  $variables['site_show_home_slider'] = $show_home_slider;
+
+}
+
+function nytech_site_preprocess_html(&$variables) {
+  $full_width = array(
+    'listings',
+  );
+  if(drupal_is_front_page()) {
+    $variables['classes_array'][] = drupal_clean_css_identifier('home');
+  } elseif(in_array(current_path(), $full_width)) {
+    $variables['classes_array'][] = drupal_clean_css_identifier('page-fullwidth');
+  } else {
+    $variables['classes_array'][] = drupal_clean_css_identifier('page-right-sidebar');
+  }
+}
+
+function price($int) {
+  return '$' . number_format($int, 0, '.', ',');
+}
+
+function number($int) {
+  return number_format($int, 0, '.', ',');
+}
+
+function testimonial_slider() {
+  $nodes = load_testimonials();
+  $count = count($nodes);
+  $dots = testimonial_dots($count);
+  $items = testimonial_items($nodes);
+
+  $array = array(
+    'count' => $count,
+    'dots' => $dots,
+    'items' => $items,
+  );
+  $output = theme('testimonial_slider', $array);
+
+  return $output;
+}
+
+function testimonial_dots($count) {
+  $output = '';
+  for ($x = 1; $x <= $count; $x++) {
+    if($x == 1) {
+      $output .= '<li data-target="#carousel-testimonial" data-slide-to="' . $x . '" class="active"></li>';
+    } else {
+      $output .= '<li data-target="#carousel-testimonial" data-slide-to="' . $x . '"></li>';
+    }
+  }
+  return $output;
+}
+
+function testimonial_items($nodes) {
+  $nodes = array_values($nodes); // remove the nid as key.
+  $output = '';
+  foreach ($nodes as $key => $node) {
+    if($key == 0) {
+      $active = 'active';
+    } else {
+      $active = '';
+    }
+    $output .= '
+      <div class="item ' . $active . '">
+        <div class="slide-content">
+          <div class="testimonial-desc">
+            "' . $node->body['und'][0]['value'] . '"
+          </div>
+          <div class="our-customer-info">
+            <div class="avatar">
+              <img src="' . base_path() . drupal_get_path('theme', 'dgtheme') . '/images/default_testimonial.png" alt="">
+            </div>
+            <div class="custom-desc">
+              <h4>' . $node->title . '</h4>
+              <p>' . $node->field_testimonial_sub_title['und'][0]['value'] . '</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    ';
+  }
+  return $output;
+}
+
+function load_testimonials() {
+  $nodes = false;
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'testimonial')
+    ->propertyCondition('status', NODE_PUBLISHED)
+    ->addMetaData('account', user_load(1));
+
+  $result = $query->execute();
+
+  $output = '';
+
+  if (isset($result['node'])) {
+    $ids = array_keys($result['node']);
+    $nodes = entity_load('node', $ids);
+  }
+  return $nodes;
+}
